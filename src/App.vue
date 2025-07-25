@@ -12,7 +12,11 @@
 </template>
 
 <script>
+import Navbar from "@/components/Navbar.vue"; // Adjust the path if needed
 export default {
+  components: {
+    Navbar
+  },
   computed: {
     computedClass() {
       if (this.$route.path === '/employment') {
@@ -27,9 +31,9 @@ export default {
       return ['/employment', '/attendance'].includes(this.$route.path);
     }
   },
-  mounted(){
-    this.$store.dispatch('employee_information')
-  }
+  mounted() {
+  this.$store.dispatch('getEmployeeInfo');
+},
 };
 </script>
 

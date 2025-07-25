@@ -14,24 +14,6 @@
       </select>
     </div>
 
-    <!-- Toggle Button for Add Employee Form - button toggles a form to add a new employee by name-->
-    <button @click="showAddEmployeeForm = !showAddEmployeeForm" class="btn btn-primary" style="margin-bottom: 10px;">
-      {{ showAddEmployeeForm ? 'Cancel' : 'Add New Employee' }}
-    </button>
-
-    <!-- Add New Employee Form -->
-    <div v-if="showAddEmployeeForm" class="add-employee-form" style="margin-bottom: 20px;">
-      <input
-        v-model="newEmployeeName"
-        placeholder="Enter new employee name"
-        class="form-control"
-      />
-      <button @click="addEmployee" class="btn btn-success" style="margin-top: 5px;">
-        Add New Employee
-      </button>
-    </div>
-
-
     <!-- Selected Employee Form - if an employee is selected, shows their name, attendance records(with add/remove/edit), and leave requests (with add/remove/edit)-->
     <div v-if="selectedEmployee" class="employee-form">
       <h2>{{ selectedEmployee.name }}</h2>
@@ -142,6 +124,8 @@
 </template>
 
 <script>
+import axios from "axios"; // Make sure this is at the top of your script
+
 export default {
   name: 'AttendanceComp',
   props: {
@@ -168,61 +152,67 @@ export default {
     }
   },
   methods: {
-  selectEmployee(employee) {
-    const clone = JSON.parse(JSON.stringify(employee));
-    if (!Array.isArray(clone.attendance)) clone.attendance = [];
-    if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
-    this.selectedEmployee = clone;
-  },
-  
-  selectEmployeeById() {
-    const emp = this.employees.find(e => e.employeeId == this.selectedEmployeeId)
-    if (emp) this.selectEmployee(emp)
-  },
-  addEmployee() {
-    if (!this.newEmployeeName.trim()) return
-    this.$emit('add-employee', this.newEmployeeName.trim())
-    this.newEmployeeName = ''
-    this.showAddEmployeeForm = false
-  },
-
-  deleteSelectedEmployee() {
-    if (this.selectedEmployee && confirm('Are you sure you want to delete this employee?')) {
-      this.$emit('delete-employee', this.selectedEmployee.employeeId);
-      this.selectedEmployee = null;
-      this.selectedEmployeeId = '';
+    async selectEmployee(employee) {
+      const clone = JSON.parse(JSON.stringify(employee));
+      // Fetch attendance from backend
+      try {
+        const attendanceRes = await axios.get(`http://localhost:9090/attendance/${employee.employeeId}`);
+        clone.attendance = attendanceRes.data;
+      } catch (error) {
+        clone.attendance = [];
+        console.error("Failed to fetch attendance:", error);
+      }
+      try {
+        const leaveRes = await axios.get(`http://localhost:9090/leave/${employee.employeeId}`);
+        clone.leaveRequests = leaveRes.data;
+      } catch (error) {
+        clone.leaveRequests = [];
+        console.error("Failed to fetch leave requests:", error);
+      }
+      if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
+      this.selectedEmployee = clone;
+    },
+    selectEmployeeById() {
+      const emp = this.employees.find(e => e.employeeId == this.selectedEmployeeId)
+      if (emp) this.selectEmployee(emp)
+    },
+    deleteSelectedEmployee() {
+      if (this.selectedEmployee && confirm('Are you sure you want to delete this employee?')) {
+        this.$emit('delete-employee', this.selectedEmployee.employeeId);
+        this.selectedEmployee = null;
+        this.selectedEmployeeId = '';
+      }
+    },
+    addAttendanceRecord() {
+      this.selectedEmployee.attendance.push({
+        date: new Date().toISOString().split('T')[0],
+        status: 'Present'
+      })
+    },
+    removeAttendance(index) {
+      this.selectedEmployee.attendance.splice(index, 1)
+    },
+    addLeaveRequest() {
+      this.selectedEmployee.leaveRequests.push({
+        date: new Date().toISOString().split('T')[0],
+        reason: 'Personal',
+        status: 'Pending'
+      })
+    },
+    removeLeaveRequest(index) {
+      this.selectedEmployee.leaveRequests.splice(index, 1)
+    },
+    saveChanges() {
+      this.$emit('update-employee', JSON.parse(JSON.stringify(this.selectedEmployee)))
+      alert('Changes saved successfully!')
+      this.selectedEmployee = null
+      this.selectedEmployeeId = ''
+    },
+    cancelEdit() {
+      this.selectedEmployee = null
+      this.selectedEmployeeId = ''
     }
-  },
-  addAttendanceRecord() {
-    this.selectedEmployee.attendance.push({
-      date: new Date().toISOString().split('T')[0],
-      status: 'Present'
-    })
-  },
-  removeAttendance(index) {
-    this.selectedEmployee.attendance.splice(index, 1)
-  },
-  addLeaveRequest() {
-    this.selectedEmployee.leaveRequests.push({
-      date: new Date().toISOString().split('T')[0],
-      reason: 'Personal',
-      status: 'Pending'
-    })
-  },
-  removeLeaveRequest(index) {
-    this.selectedEmployee.leaveRequests.splice(index, 1)
-  },
-  saveChanges() {
-    this.$emit('update-employee', JSON.parse(JSON.stringify(this.selectedEmployee)))
-    alert('Changes saved successfully!')
-    this.selectedEmployee = null
-    this.selectedEmployeeId = ''
-  },
-  cancelEdit() {
-    this.selectedEmployee = null
-    this.selectedEmployeeId = ''
   }
-}
 }
   
 </script>
