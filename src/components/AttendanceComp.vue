@@ -2,10 +2,8 @@
   <div class="attendance-system">
     <h1>Employee Attendance System</h1>
 
-<!-- Employee Search Dropdown - 
- this lets you select an employee by name from a dropdown-->
+    <!-- Employee Search Dropdown -->
     <div class="search-box">
-      
       <select v-model="selectedEmployeeId" @change="selectEmployeeById" class="search-input">
         <option value="">Select employee...</option>
         <option v-for="emp in employees" :key="emp.employeeId" :value="emp.employeeId">
@@ -14,7 +12,7 @@
       </select>
     </div>
 
-    <!-- Selected Employee Form - if an employee is selected, shows their name, attendance records(with add/remove/edit), and leave requests (with add/remove/edit)-->
+    <!-- Selected Employee Form -->
     <div v-if="selectedEmployee" class="employee-form">
       <h2>{{ selectedEmployee.name }}</h2>
 
@@ -26,7 +24,6 @@
             <tr>
               <th>Date</th>
               <th>Status</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -42,14 +39,10 @@
                   <option value="Half Day">Half Day</option>
                 </select>
               </td>
-              <td>
-                <button @click="removeAttendance(index)" class="btn btn-danger">Remove</button>
-              </td>
             </tr>
           </tbody>
         </table>
         <p v-else>No attendance records.</p>
-        <button @click="addAttendanceRecord" class="btn btn-primary">Add Attendance Record</button>
       </div>
 
       <!-- Leave Requests -->
@@ -61,7 +54,6 @@
               <th>Date</th>
               <th>Reason</th>
               <th>Status</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -87,44 +79,20 @@
                   <option value="Denied">Denied</option>
                 </select>
               </td>
-              <td>
-                <button @click="removeLeaveRequest(index)" class="btn btn-danger">Remove</button>
-              </td>
             </tr>
           </tbody>
         </table>
         <p v-else>No leave requests.</p>
-        <button @click="addLeaveRequest" class="btn btn-primary">Add Leave Request</button>
       </div>
 
       <button @click="saveChanges" class="btn btn-success">Save Changes</button>
       <button @click="cancelEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
-      <button @click="deleteSelectedEmployee" class="btn btn-danger" style="margin-left:10px;">Delete</button>
     </div>
-
-     <div v-else class="employee-list">
-  <div v-if="search">
-    <div
-      v-for="employee in filteredEmployees"
-      :key="employee.employeeId"
-      class="employee-card"
-      @click="selectEmployee(employee)"
-    >
-      {{ employee.name }}
-    </div>
-    
   </div>
-  <div v-else class="no-results">
-    
-  </div>
-</div>
-    
-  </div>
-  
 </template>
 
 <script>
-import axios from "axios"; // Make sure this is at the top of your script
+import axios from "axios";
 
 export default {
   name: 'AttendanceComp',
@@ -136,25 +104,13 @@ export default {
   },
   data() {
     return {
-      search: '',
       selectedEmployee: null,
-      selectedEmployeeId: '',
-      newEmployeeName: '',
-      showAddEmployeeForm: false
-    }
-  },
-  computed: {
-    filteredEmployees() {
-      if (!this.search) return this.employees
-      return this.employees.filter(emp =>
-        emp.name.toLowerCase().includes(this.search.toLowerCase())
-      )
+      selectedEmployeeId: ''
     }
   },
   methods: {
     async selectEmployee(employee) {
       const clone = JSON.parse(JSON.stringify(employee));
-      // Fetch attendance from backend
       try {
         const attendanceRes = await axios.get(`http://localhost:9090/attendance/${employee.employeeId}`);
         clone.attendance = attendanceRes.data;
@@ -172,49 +128,31 @@ export default {
       if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
       this.selectedEmployee = clone;
     },
+
     selectEmployeeById() {
-      const emp = this.employees.find(e => e.employeeId == this.selectedEmployeeId)
-      if (emp) this.selectEmployee(emp)
-    },
-    deleteSelectedEmployee() {
-      if (this.selectedEmployee && confirm('Are you sure you want to delete this employee?')) {
-        this.$emit('delete-employee', this.selectedEmployee.employeeId);
-        this.selectedEmployee = null;
-        this.selectedEmployeeId = '';
+      const emp = this.employees.find(e => e.employeeId == this.selectedEmployeeId);
+      if (emp) {
+        this.selectEmployee(emp);
       }
     },
-    addAttendanceRecord() {
-      this.selectedEmployee.attendance.push({
-        date: new Date().toISOString().split('T')[0],
-        status: 'Present'
-      })
+
+    async saveChanges() {
+      try {
+        await axios.put(`http://localhost:9090/attendance/${this.selectedEmployee.employeeId}`, this.selectedEmployee.attendance);
+        await axios.put(`http://localhost:9090/leave/${this.selectedEmployee.employeeId}`, this.selectedEmployee.leaveRequests);
+        alert("Changes saved successfully!");
+      } catch (error) {
+        console.error("Failed to save changes:", error);
+        alert("Failed to save changes.");
+      }
     },
-    removeAttendance(index) {
-      this.selectedEmployee.attendance.splice(index, 1)
-    },
-    addLeaveRequest() {
-      this.selectedEmployee.leaveRequests.push({
-        date: new Date().toISOString().split('T')[0],
-        reason: 'Personal',
-        status: 'Pending'
-      })
-    },
-    removeLeaveRequest(index) {
-      this.selectedEmployee.leaveRequests.splice(index, 1)
-    },
-    saveChanges() {
-      this.$emit('update-employee', JSON.parse(JSON.stringify(this.selectedEmployee)))
-      alert('Changes saved successfully!')
-      this.selectedEmployee = null
-      this.selectedEmployeeId = ''
-    },
+
     cancelEdit() {
-      this.selectedEmployee = null
-      this.selectedEmployeeId = ''
+      this.selectedEmployee = null;
+      this.selectedEmployeeId = '';
     }
   }
 }
-  
 </script>
 
 <style scoped>
@@ -222,7 +160,6 @@ export default {
   max-width: 1000px;
   margin: 0 auto;
   padding: 2vw;
-  
 }
 .search-box {
   margin-bottom: 20px;
@@ -284,42 +221,5 @@ export default {
 .btn-secondary {
   background-color: #6c757d;
   color: white;
-}
-.employee-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  margin-top: 20px;
-}
-.employee-card {
-  padding: 15px;
-  background: #f0f0f0;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.employee-card:hover {
-  background: #e0e0e0;
-}
-@media (max-width: 900px) {
-  .attendance-system {
-    padding: 3vw 1vw;
-  }
-  .employee-list {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
-  }
-}
-@media (max-width: 600px) {
-  .attendance-system {
-    padding: 2vw 0.5vw;
-  }
-  .employee-list {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .employee-card {
-    padding: 10px;
-  }
 }
 </style>

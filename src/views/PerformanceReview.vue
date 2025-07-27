@@ -17,14 +17,18 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="employee in employees" :key="employee.employeeId">
-            <td>{{ employee.name }}</td>
-            <td>{{ employee.position }}</td>
-            <td>{{ employee.department }}</td>
-            <td>{{ getAttendance(employee) }}</td>
-            <td>{{ getProductivity(employee).toFixed(1) }}</td>
-            <td>{{ getTotal(employee).toFixed(1) }}</td>
-          </tr>
+          <tr v-for="employee in employees" :key="employee.id">
+  <td>{{ employee.employee_name }}</td>
+  <td>{{ employee.position }}</td>
+  <td>{{ employee.department }}</td>
+  <td>{{ getAttendance(employee).toFixed(1) }}</td>
+  <td>{{ getProductivity(employee).toFixed(1) }}</td>
+  <td>{{ getTotal(employee).toFixed(1) }}</td>
+</tr>
+<tr v-if="employees.length === 0">
+  <td colspan="6">No performance review data available</td>
+</tr>
+
         </tbody>
       </table>
     </div>
@@ -34,122 +38,41 @@
 
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import Navbar from '@/components/Navbar.vue'
-import { ref } from 'vue'
 import Footer from '@/components/Footer.vue'
 
-  const employees = ref([
-       {
-            employeeId: 1,
-            name: "Sibongile Nkosi",
-            position: "Software Engineer",
-            department: "Development",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 160,
-            leaveDeductions: 8  
-        },
-        {
-            employeeId: 2,
-            name: "Lungile Moyo",
-            position: "HR Manager",
-            department: "HR",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 150,
-            leaveDeductions: 10
-        },
-        {
-             employeeId: 3,
-             name: "Thabo Molefe",
-             position: "Quality Analyst",
-             department: "QA",
-             workingDays:30, // we calculated 5 days a week and 4 weeks a month 30 days
-             daysPresent: 26, // 1 absent times 4 meaning 1 absentizim per week
-             hoursWorked: 170,
-             leaveDeductions: 4,
-        },
-        {
-            "employeeId": 4,
-            "name": "Keshav Naidoo",
-            "position": "Sales Representative",
-            "department": "Sales",
-             workingDays:30,
-             daysPresent: 26,
-            "hoursWorked": 165,
-            "leaveDeductions": 6,
-        },
-        {
-            employeeId: 5,
-            name: "Zanele Khumalo",
-            position: "Marketing Specialist",
-            department: "Marketing",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 158,
-            leaveDeductions: 5,
-        },
-        {
-            employeeId: 6,
-            name: "Sipho Zulu",
-            position: "UI/UX Designer",
-            department: "Design",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 168,
-            leaveDeductions: 2,
-        },
-        {
-            employeeId: 7,
-            name: "Naledi Moeketsi",
-            position: "DevOps Engineer",
-            department: "IT",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 175,
-            leaveDeductions: 3,
-        },
-        {
-            employeeId: 8,
-            name: "Farai Gumbo",
-            position: "Content Strategist",
-            department: "Marketing",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 160,
-            leaveDeductions: 0,
-        },
-        {
-            employeeId: 9,
-            name: "Karabo Dlamini",
-            position: "Accountant",
-            department: "Finance",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 155,
-            leaveDeductions: 5,
-        },
-        {
-            employeeId: 10,
-            name: "Fatima Patel",
-            position: "Customer Support Lead",
-            department: "Support",
-            workingDays:30,
-            daysPresent: 26,
-            hoursWorked: 162,
-            leaveDeductions: 4,
+const employees = ref([])
 
-        }
+onMounted(async () => {
+  try {
+    const res = await fetch('http://localhost:9090/performance')
+    if (!res.ok) throw new Error('Network response was not ok')
+    const data = await res.json()
+    console.log('✅ Performance reviews:', data)
+    employees.value = data
+  } catch (err) {
+    console.error('❌ Failed to fetch performance data:', err)
+  }
+})
 
+const getAttendance = (emp) => {
+  const val = parseFloat(emp.attendance);
+  return isNaN(val) ? 0 : val;
+}
 
-        ])
-        const getAttendance = (emp) => {
-           if(!emp.workingDays || emp.daysPresent === undefined) return 0
-            return Math.round((emp.daysPresent/ emp.workingDays) * 10) 
-        }
-        const getProductivity = (emp) => Math.min(10, emp.hoursWorked/17)
-        const getTotal = (emp) => getAttendance(emp) + getProductivity(emp)
+const getProductivity = (emp) => {
+  const val = parseFloat(emp.productivity);
+  return isNaN(val) ? 0 : val;
+}
+
+const getTotal = (emp) => {
+  const val = parseFloat(emp.total);
+  return isNaN(val) ? 0 : val;
+}
 </script>
+
+
 
 <style>
 
