@@ -1,101 +1,113 @@
 <template>
   <div class="attendance-system">
-    <h1>Employee Attendance System</h1>
-
-    <!-- Employee Search Dropdown -->
-    <div class="search-box">
-      <select v-model="selectedEmployeeId" @change="selectEmployeeById" class="search-input">
-        <option value="">Select employee...</option>
-        <option v-for="emp in employees" :key="emp.employeeId" :value="emp.employeeId">
-          {{ emp.name }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Selected Employee Form -->
-    <div v-if="selectedEmployee" class="employee-form">
-      <h2>{{ selectedEmployee.name }}</h2>
-
-      <!-- Attendance Records -->
-      <div class="form-section">
-        <h3>Attendance Records</h3>
-        <table class="records-table" v-if="selectedEmployee.attendance.length > 0">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(record, index) in selectedEmployee.attendance" :key="index">
-              <td>
-                <input type="date" v-model="record.date" class="form-control" />
-              </td>
-              <td>
-                <select v-model="record.status" class="form-control">
-                  <option value="Present">Present</option>
-                  <option value="Absent">Absent</option>
-                  <option value="Late">Late</option>
-                  <option value="Half Day">Half Day</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>No attendance records.</p>
+    <h1>Employee Records System</h1>
+    <div class="side-by-side-main">
+      <!-- Attendance Records System -->
+      <div class="system-section">
+        <h2>Attendance Records</h2>
+        <div class="search-box">
+          <select v-model="selectedAttendanceEmployeeId" @change="selectAttendanceEmployeeById" class="search-input">
+            <option value="">Select employee...</option>
+            <option v-for="emp in employees" :key="emp.employeeId" :value="emp.employeeId">
+              {{ emp.name }}
+            </option>
+          </select>
+        </div>
+        <div v-if="attendanceEmployee" class="employee-form">
+          <h3>{{ attendanceEmployee.name }}</h3>
+          <table class="records-table" v-if="attendanceEmployee.attendance.length > 0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(record, index) in attendanceEmployee.attendance" :key="index">
+                <td>
+                  <input type="date" v-model="record.attendance_date" class="form-control" />
+                </td>
+                <td>
+                  <select v-model="record.status" class="form-control">
+                    <option value="Present">Present</option>
+                    <option value="Absent">Absent</option>
+                    <option value="Late">Late</option>
+                    <option value="Half Day">Half Day</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else>No attendance records.</p>
+          <button @click="saveAttendanceChanges" class="btn btn-success">Save Changes</button>
+          <button @click="cancelAttendanceEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
+        </div>
       </div>
-
-      <!-- Leave Requests -->
-      <div class="form-section">
-        <h3>Leave Requests</h3>
-        <table class="records-table" v-if="selectedEmployee.leaveRequests.length > 0">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Reason</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(request, index) in selectedEmployee.leaveRequests" :key="index">
-              <td>
-                <input type="date" v-model="request.date" class="form-control" />
-              </td>
-              <td>
-                <select v-model="request.reason" class="form-control">
-                  <option value="Sick Leave">Sick Leave</option>
-                  <option value="Vacation">Vacation</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Family Responsibility">Family Responsibility</option>
-                  <option value="Medical Appointment">Medical Appointment</option>
-                  <option value="Bereavement">Bereavement</option>
-                  <option value="Childcare">Childcare</option>
-                </select>
-              </td>
-              <td>
-                <select v-model="request.status" class="form-control">
-                  <option value="Pending">Pending</option>
-                  <option value="Approved">Approved</option>
-                  <option value="Denied">Denied</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <p v-else>No leave requests.</p>
+      <!-- Leave Request System -->
+      <div class="system-section">
+        <h2>Leave Requests</h2>
+        <div class="search-box">
+          <select v-model="selectedLeaveEmployeeId" @change="selectLeaveEmployeeById" class="search-input">
+            <option value="">Select employee...</option>
+            <option v-for="emp in employees" :key="emp.employeeId" :value="emp.employeeId">
+              {{ emp.name }}
+            </option>
+          </select>
+        </div>
+        <div v-if="leaveEmployee" class="employee-form">
+          <h3>{{ leaveEmployee.name }}</h3>
+          <div class="form-section">
+            <table class="records-table" v-if="leaveEmployee.leaveRequests.length > 0">
+              <thead>
+                <tr>
+                  <th>From Date</th>
+                  <th>To Date</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(request, index) in leaveEmployee.leaveRequests" :key="index">
+                  <td>
+                    <input type="date" v-model="request.from_date" class="form-control" />
+                  </td>
+                  <td>
+                    <input type="date" v-model="request.to_date" class="form-control" />
+                  </td>
+                  <td>
+                    <select v-model="request.reason" class="form-control">
+                      <option value="Sick Leave">Sick Leave</option>
+                      <option value="Vacation">Vacation</option>
+                      <option value="Personal">Personal</option>
+                      <option value="Family Responsibility">Family Responsibility</option>
+                      <option value="Medical Appointment">Medical Appointment</option>
+                      <option value="Bereavement">Bereavement</option>
+                      <option value="Childcare">Childcare</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select v-model="request.status" class="form-control">
+                      <option value="Pending">Pending</option>
+                      <option value="Approved">Approved</option>
+                      <option value="Rejected">Rejected</option>
+                    </select>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-else>No leave requests.</p>
+          </div>
+          <button @click="saveLeaveChanges" class="btn btn-success">Save Changes</button>
+          <button @click="cancelLeaveEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
+        </div>
       </div>
-
-      <button @click="saveChanges" class="btn btn-success">Save Changes</button>
-      <button @click="cancelEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
     </div>
   </div>
 </template>
-
 <script>
 import axios from "axios";
-
 export default {
-  name: 'AttendanceComp',
+  name: "AttendanceAndLeave",
   props: {
     employees: {
       type: Array,
@@ -104,12 +116,14 @@ export default {
   },
   data() {
     return {
-      selectedEmployee: null,
-      selectedEmployeeId: ''
-    }
+      selectedAttendanceEmployeeId: '',
+      attendanceEmployee: null,
+      selectedLeaveEmployeeId: '',
+      leaveEmployee: null
+    };
   },
   methods: {
-    async selectEmployee(employee) {
+    async selectAttendanceEmployee(employee) {
       const clone = JSON.parse(JSON.stringify(employee));
       try {
         const attendanceRes = await axios.get(`http://localhost:9090/attendance/${employee.employeeId}`);
@@ -118,48 +132,71 @@ export default {
         clone.attendance = [];
         console.error("Failed to fetch attendance:", error);
       }
-      try {
-        const leaveRes = await axios.get(`http://localhost:9090/leave/${employee.employeeId}`);
-        clone.leaveRequests = leaveRes.data;
-      } catch (error) {
-        clone.leaveRequests = [];
-        console.error("Failed to fetch leave requests:", error);
-      }
-      if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
-      this.selectedEmployee = clone;
+      this.attendanceEmployee = clone;
     },
-
-    selectEmployeeById() {
-      const emp = this.employees.find(e => e.employeeId == this.selectedEmployeeId);
+    selectAttendanceEmployeeById() {
+      const emp = this.employees.find(e => e.employeeId == this.selectedAttendanceEmployeeId);
       if (emp) {
-        this.selectEmployee(emp);
+        this.selectAttendanceEmployee(emp);
       }
     },
-
-    async saveChanges() {
+    async saveAttendanceChanges() {
       try {
-        await axios.put(`http://localhost:9090/attendance/${this.selectedEmployee.employeeId}`, this.selectedEmployee.attendance);
-        await axios.put(`http://localhost:9090/leave/${this.selectedEmployee.employeeId}`, this.selectedEmployee.leaveRequests);
-        alert("Changes saved successfully!");
+        await axios.put(`http://localhost:9090/attendance/${this.attendanceEmployee.employeeId}`, this.attendanceEmployee.attendance);
+        alert("Attendance changes saved successfully!");
       } catch (error) {
-        console.error("Failed to save changes:", error);
-        alert("Failed to save changes.");
+        console.error("Failed to save attendance changes:", error);
+        alert("Failed to save attendance changes.");
       }
     },
-
-    cancelEdit() {
-      this.selectedEmployee = null;
-      this.selectedEmployeeId = '';
+    cancelAttendanceEdit() {
+      this.attendanceEmployee = null;
+      this.selectedAttendanceEmployeeId = '';
+    },
+    async selectLeaveEmployee(employee) {
+  const clone = JSON.parse(JSON.stringify(employee));
+  try {
+    const leaveRes = await axios.get(`http://localhost:9090/leave/${employee.employeeId}`);
+    clone.leaveRequests = leaveRes.data;
+  } catch (error) {
+    clone.leaveRequests = [];
+    console.error("Failed to fetch leave requests:", error);
+  }
+  if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
+  this.leaveEmployee = clone;
+},
+    selectLeaveEmployeeById() {
+      const emp = this.employees.find(e => e.employeeId == this.selectedLeaveEmployeeId);
+      if (emp) {
+        this.selectLeaveEmployee(emp);
+      }
+    },
+    async saveLeaveChanges() {
+      try {
+        await axios.put(`http://localhost:9090/leave/${this.leaveEmployee.employeeId}`, this.leaveEmployee.leaveRequests);
+        alert("Leave changes saved successfully!");
+      } catch (error) {
+        console.error("Failed to save leave changes:", error);
+        alert("Failed to save leave changes.");
+      }
+    },
+    cancelLeaveEdit() {
+      this.leaveEmployee = null;
+      this.selectedLeaveEmployeeId = '';
     }
   }
-}
+};
 </script>
-
 <style scoped>
 .attendance-system {
-  max-width: 1000px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 2vw;
+}
+.side-by-side-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
 }
 .search-box {
   margin-bottom: 20px;
@@ -168,35 +205,40 @@ export default {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
-  border: 1px solid #2199ea;
+  border: 1px solid #2199EA;
   border-radius: 4px;
   font-size: 1rem;
 }
 .employee-form {
-  background: #f9f9f9;
+  background: #F9F9F9;
   padding: 20px;
   border-radius: 5px;
   margin-top: 20px;
 }
-.form-section {
-  margin-bottom: 30px;
+.system-section {
+  flex: 1;
+  min-width: 450px;
+  background: #F9F9F9;
+  padding: 40px;
+  border-radius: 5px;
 }
 .records-table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 15px;
+  padding-left: -8px;
 }
 .records-table th, .records-table td {
   border: 1px solid #ddd;
   padding: 8px;
-  text-align: left;
+  text-align: center;
 }
 .records-table th {
-  background-color: #f2f2f2;
+  background-color: #F2F2F2;
 }
 .form-control {
   width: 100%;
-  padding: 5px;
+  padding: 1px;
 }
 .btn {
   padding: 5px 10px;
@@ -205,21 +247,12 @@ export default {
   border-radius: 3px;
   border: none;
 }
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-.btn-danger {
-  background-color: #dc3545;
-  color: white;
-}
 .btn-success {
-  background-color: #28a745;
+  background-color: #28A745;
   color: white;
-  padding: 8px 15px;
 }
 .btn-secondary {
-  background-color: #6c757d;
+  background-color: #6C757D;
   color: white;
 }
 </style>

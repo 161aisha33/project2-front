@@ -223,11 +223,27 @@ section {
   }
 }
 .overlay-form-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 90vh;
-  width: 100vw;
+  z-index: 1000;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(5px);
+  overflow-y: auto; 
+}
+
+.add-employee-form.centered-form {
+  max-width: 350px;
+  min-width: 260px;
+  width: 100%;
+  padding: 18px 16px;
+  margin-top: 0;
+  overflow-y: auto; 
 }
 
 .centered-form {
@@ -259,6 +275,7 @@ section {
   gap: 10px;
   min-width: 400px;
   margin-top: 16px;
+  width: 100%;
 }
 .action-buttons {
   display: flex;
@@ -313,7 +330,7 @@ section {
 .btn-secondary {
   background: #6c757d;
   color: #fff;
-  
+}
 .container {
   position: relative;
   text-align: center;
@@ -321,8 +338,6 @@ section {
   max-width: 100vw;
   overflow-x: hidden;
   box-sizing: border-box;
-}
-  margin-top: 20px;
 }
 h2 {
   font-size: 2em;
