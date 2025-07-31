@@ -226,6 +226,7 @@ section {
   position: fixed;
   top: 0;
   left: 0;
+  margin-top: auto;
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -254,7 +255,7 @@ section {
 }
 
 .search-bar {
-  margin-top: -30px; /* move up by decreasing this */
+  margin-top: 20px; /* move up by decreasing this */
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;

@@ -15,7 +15,8 @@
         </div>
         <div v-if="attendanceEmployee" class="employee-form">
           <h3>{{ attendanceEmployee.name }}</h3>
-          <table class="records-table" v-if="attendanceEmployee.attendance.length > 0">
+          <table class="records-table attendance-table" v-if="attendanceEmployee.attendance.length > 0">
+
             <thead>
               <tr>
                 <th>Date</th>
@@ -23,24 +24,32 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(record, index) in attendanceEmployee.attendance" :key="index">
-                <td>
-                  <input type="date" v-model="record.attendance_date" class="form-control" />
-                </td>
-                <td>
-                  <select v-model="record.status" class="form-control">
-                    <option value="Present">Present</option>
-                    <option value="Absent">Absent</option>
-                    <option value="Late">Late</option>
-                    <option value="Half Day">Half Day</option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
+  <tr v-for="(record, index) in attendanceEmployee.attendance" :key="index">
+    <td>
+      <input
+        v-if="record.isNew"
+        type="date"
+        v-model="record.attendance_date"
+        class="form-control"
+      />
+      <span v-else>{{ record.attendance_date }}</span>
+    </td>
+    <td>
+      <select v-model="record.status" class="form-control">
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+        <option value="Late">Late</option>
+        <option value="Half Day">Half Day</option>
+      </select>
+    </td>
+  </tr>
+</tbody>
+
           </table>
           <p v-else>No attendance records.</p>
           <button @click="saveAttendanceChanges" class="btn btn-success">Save Changes</button>
           <button @click="cancelAttendanceEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
+          <button @click="addNewAttendanceRow" class="btn btn-primary" style="margin-left:10px;">Add New Attendance</button>
         </div>
       </div>
       <!-- Leave Request System -->
@@ -68,37 +77,50 @@
               </thead>
               <tbody>
                 <tr v-for="(request, index) in leaveEmployee.leaveRequests" :key="index">
-                  <td>
-                    <input type="date" v-model="request.from_date" class="form-control" />
-                  </td>
-                  <td>
-                    <input type="date" v-model="request.to_date" class="form-control" />
-                  </td>
-                  <td>
-                    <select v-model="request.reason" class="form-control">
-                      <option value="Sick Leave">Sick Leave</option>
-                      <option value="Vacation">Vacation</option>
-                      <option value="Personal">Personal</option>
-                      <option value="Family Responsibility">Family Responsibility</option>
-                      <option value="Medical Appointment">Medical Appointment</option>
-                      <option value="Bereavement">Bereavement</option>
-                      <option value="Childcare">Childcare</option>
-                    </select>
-                  </td>
-                  <td>
-                    <select v-model="request.status" class="form-control">
-                      <option value="Pending">Pending</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                    </select>
-                  </td>
-                </tr>
+  <td>
+    <input
+      v-if="request.isNew"
+      type="date"
+      v-model="request.from_date"
+      class="form-control"
+    />
+    <span v-else>{{ request.from_date }}</span>
+  </td>
+  <td>
+    <input
+      v-if="request.isNew"
+      type="date"
+      v-model="request.to_date"
+      class="form-control"
+    />
+    <span v-else>{{ request.to_date }}</span>
+  </td>
+  <td>
+    <select v-model="request.reason" class="form-control">
+      <option value="Sick Leave">Sick Leave</option>
+      <option value="Vacation">Vacation</option>
+      <option value="Personal">Personal</option>
+      <option value="Family Responsibility">Family Responsibility</option>
+      <option value="Medical Appointment">Medical Appointment</option>
+      <option value="Bereavement">Bereavement</option>
+      <option value="Childcare">Childcare</option>
+    </select>
+  </td>
+  <td>
+    <select v-model="request.status" class="form-control">
+      <option value="Pending">Pending</option>
+      <option value="Approved">Approved</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+  </td>
+</tr>
               </tbody>
             </table>
             <p v-else>No leave requests.</p>
           </div>
           <button @click="saveLeaveChanges" class="btn btn-success">Save Changes</button>
           <button @click="cancelLeaveEdit" class="btn btn-secondary" style="margin-left:10px;">Cancel</button>
+          <button @click="addNewLeaveRow" class="btn btn-primary" style="margin-left:10px;">Add New Leave</button>
         </div>
       </div>
     </div>
@@ -139,16 +161,71 @@ export default {
       if (emp) {
         this.selectAttendanceEmployee(emp);
       }
-    },
-    async saveAttendanceChanges() {
-      try {
-        await axios.put(`http://localhost:9090/attendance/${this.attendanceEmployee.employeeId}`, this.attendanceEmployee.attendance);
-        alert("Attendance changes saved successfully!");
-      } catch (error) {
-        console.error("Failed to save attendance changes:", error);
-        alert("Failed to save attendance changes.");
-      }
-    },
+    },async saveAttendanceChanges() {
+  try {
+    const newRecords = this.attendanceEmployee.attendance.filter(r => r.isNew);
+    for (const rec of newRecords) {
+      await axios.post('http://localhost:9090/attendance', {
+      Employee_Information_ID: this.attendanceEmployee.employeeId,
+      attendance_date: rec.attendance_date,
+      status: rec.status  
+    });
+      rec.isNew = false;
+    }
+    // ... handle existing records (PUT) if needed ...
+    alert("Attendance changes saved successfully!");
+  } catch (error) {
+    console.error("Failed to save attendance changes:", error);
+    alert("Failed to save attendance changes.");
+  }
+},
+    async saveLeaveChanges() {
+  try {
+    const newRequests = this.leaveEmployee.leaveRequests.filter(r => r.isNew);
+    for (const req of newRequests) {
+      console.log('Posting:', {
+        employeeId: this.leaveEmployee.employeeId,
+        from_date: req.from_date,
+        to_date: req.to_date,
+        reason: req.reason,
+        status: req.status
+      });
+    await axios.post('http://localhost:9090/leave', {
+  Employee_Information_ID: this.leaveEmployee.employeeId,
+  from_date: req.from_date,
+  to_date: req.to_date,
+  reason: req.reason,
+  status: req.status
+});
+
+
+      req.isNew = false;
+    }
+    this.leaveEmployee = null;
+this.selectedLeaveEmployeeId = '';
+
+    // ... handle existing requests ...
+  } catch (error) {
+    console.error("Failed to save leave changes:", error);
+    alert("Failed to save leave changes.");
+  }
+},addNewLeaveRow() {
+  if (!this.leaveEmployee.leaveRequests) this.leaveEmployee.leaveRequests = [];
+  this.leaveEmployee.leaveRequests.push({
+    from_date: '',
+    to_date: '',
+    reason: 'Sick Leave',
+    status: 'Pending',
+    isNew: true
+  });
+},addNewAttendanceRow() {
+  if (!this.attendanceEmployee.attendance) this.attendanceEmployee.attendance = [];
+  this.attendanceEmployee.attendance.push({
+    attendance_date: '',
+    status: 'Present',
+    isNew: true
+  });
+},
     cancelAttendanceEdit() {
       this.attendanceEmployee = null;
       this.selectedAttendanceEmployeeId = '';
@@ -164,22 +241,15 @@ export default {
   }
   if (!Array.isArray(clone.leaveRequests)) clone.leaveRequests = [];
   this.leaveEmployee = clone;
-},
+}
+,
     selectLeaveEmployeeById() {
       const emp = this.employees.find(e => e.employeeId == this.selectedLeaveEmployeeId);
       if (emp) {
         this.selectLeaveEmployee(emp);
       }
     },
-    async saveLeaveChanges() {
-      try {
-        await axios.put(`http://localhost:9090/leave/${this.leaveEmployee.employeeId}`, this.leaveEmployee.leaveRequests);
-        alert("Leave changes saved successfully!");
-      } catch (error) {
-        console.error("Failed to save leave changes:", error);
-        alert("Failed to save leave changes.");
-      }
-    },
+
     cancelLeaveEdit() {
       this.leaveEmployee = null;
       this.selectedLeaveEmployeeId = '';
@@ -198,6 +268,23 @@ export default {
   flex-wrap: wrap;
   gap: 30px;
 }
+.attendance-table th,
+.attendance-table td {
+  padding: 4px;
+  font-size: 0.85rem;
+}
+
+.attendance-table .form-control {
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
+.attendance-table {
+  width: 90%;
+  margin: 0 auto 15px;
+  table-layout: fixed;
+}
+
 .search-box {
   margin-bottom: 20px;
 }

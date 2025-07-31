@@ -8,8 +8,8 @@
         <h3>Position: {{ employee.position }}</h3>
         <p>Department: {{ employee.department }}</p>
         <p>Salary: R{{ employee.salary }}</p>
-        <p>Email: {{ employee.contact }}</p>
-        <p>Phone: {{ employee.phone_number }}</p>
+        <p>Email: {{ employee.email }}</p>
+        <p>Contact Number: {{ employee.phone_number }}</p>
         <p>Hire Date: {{ new Date(employee.hire_date).toLocaleDateString() }}</p>
         <p v-if="employee.employmentHistory">Employment History: {{ employee.employmentHistory }}</p>
       </div>

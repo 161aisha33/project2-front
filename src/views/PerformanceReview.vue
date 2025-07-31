@@ -49,10 +49,10 @@ onMounted(async () => {
     const res = await fetch('http://localhost:9090/performance')
     if (!res.ok) throw new Error('Network response was not ok')
     const data = await res.json()
-    console.log('✅ Performance reviews:', data)
+    console.log(' Performance reviews:', data)
     employees.value = data
   } catch (err) {
-    console.error('❌ Failed to fetch performance data:', err)
+    console.error(' Failed to fetch performance data:', err)
   }
 })
 
@@ -71,45 +71,45 @@ const getTotal = (emp) => {
   return isNaN(val) ? 0 : val;
 }
 </script>
-
-
-
 <style>
-
 .Review {
   padding: 1rem;
 }
 
-/* Make table scrollable on small screens */
+/* Scrollable container on small screens */
 .table-wrapper {
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+/* Proper table structure with border radius only on outer corners */
 .review-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   margin-top: 1rem;
+  min-width: 600px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   background-color: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   border-radius: 8px;
-  min-width: 600px; /* Table will scroll on narrow screens */
+  overflow: hidden;
 }
 
+/* Standard table cells */
 .review-table th,
 .review-table td {
   padding: 1rem;
   text-align: center;
   border: 1px solid #dee2e6;
-  background-color: #ffffff;
   color: #222;
-  white-space: normal; /* Let text wrap */
+  background-color: #ffffff;
+  white-space: normal;
   word-break: break-word;
 }
 
+/* Header row */
 .review-table th {
   background-color: #345678;
   color: #ffffff;
@@ -119,6 +119,20 @@ const getTotal = (emp) => {
 /* Zebra striping */
 .review-table tr:nth-child(even) td {
   background-color: #f0f3f6;
+}
+
+/* Rounded corners only on outermost cells */
+.review-table thead tr th:first-child {
+  border-top-left-radius: 8px;
+}
+.review-table thead tr th:last-child {
+  border-top-right-radius: 8px;
+}
+.review-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+.review-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
 }
 
 /* Responsive font sizes */
@@ -149,8 +163,7 @@ const getTotal = (emp) => {
   }
 }
 
-
-/* Buttons styling */
+/* Button styling */
 button {
   padding: 0.7rem 1.5rem;
   background-color: #345678;
@@ -167,7 +180,7 @@ button:hover {
   background-color: #2b4564;
 }
 
-/* Ratings section styles */
+/* Ratings section */
 .ratings h2 {
   color: #345678;
 }
@@ -177,5 +190,6 @@ button:hover {
   font-size: 1.1rem;
 }
 
-
 </style>
+
+
